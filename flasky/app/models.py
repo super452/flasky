@@ -16,12 +16,12 @@ class Permission:
 	ADMINISTER = 0x80
 
 class Role(db.Model):
-    __tablename__ = 'roles'
-    id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String(64), unique = True)
+	__tablename__ = 'roles'
+	id = db.Column(db.Integer, primary_key = True)
+	name = db.Column(db.String(64), unique = True)
 	default = db.Column(db.Boolean, default = False, index = True)
 	permissions = db.Column(db.Integer)
-    users = db.relationship('User', backref ='role', lazy = 'dynamic')
+	users = db.relationship('User', backref ='role', lazy = 'dynamic')
 
 	@staticmethod
 	def insert_roles():
@@ -44,8 +44,8 @@ class Role(db.Model):
 			db.session.commit()
 			
 
-    def __repr__(self):
-        return '<Role %r>' % self.name
+	def __repr__(self):
+		return '<Role %r>' % self.name
 
 class User(UserMixin, db.Model):
 	__tablename__ = 'users'
@@ -64,11 +64,11 @@ class User(UserMixin, db.Model):
 			if self.role is None:
 				self.role = Role.query.filter_by(default=True).first()
 
-	def generate_confirmation_token(self, expiration)
+	def generate_confirmation_token(self, expiration):
 		s = Serializer(app.config['SECRET_KEY'], expires_in = 3600)
-		return s.dumps({'confirm': self.id)
+		return s.dumps({'confirm': self.id})
 	
-	def confirm(self, token)
+	def confirm(self, token):
 		s = Serializer(current_app.config['SECRET_KEY'])
 		try:
 			data = s.loads(token)
@@ -100,11 +100,12 @@ class User(UserMixin, db.Model):
 	def __repr__(self):
 		return '<User %r>' % self.username
 
-class AnoymousUser(AnoymousUserMixin):
+class AnonymousUser(AnonymousUserMixin):
 	def can(self, permissions):
 		return False
 	def is_administrator(self):
 		return False
+
 login_manager.anonymous_user = AnonymousUser
 
 
