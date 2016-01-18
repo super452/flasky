@@ -1,14 +1,14 @@
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from app import db
+from flask import current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin, AnonymousUserMixin
-from . import login_manager
+from . import db, login_manager
 
 @login_manager.user_loader
 def load_user(user_id):
 	return User.query.get(int(user_id))
 
-class Permission:
+class Permission(object):
 	FOLLOW = 0x01
 	COMMENT = 0x02
 	WRITE_ARTICLES = 0x04

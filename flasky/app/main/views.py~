@@ -5,7 +5,4 @@ from . import main
 def index():
 	return render_template('index.html')
 
-@auth.route('/login')
-def login():
-	return render_template('auth/login.html')
 
