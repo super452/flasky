@@ -2,6 +2,12 @@
 
 {% block title %}Flasky{% endblock %}
 
+ {% block head %}
+ {{ super() }}
+ <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+ <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+ {% endblock %}
+
 {% block navbar %}
 <div class="navbar navbar-inverse" role="navigation">
     <div class="container">
@@ -12,20 +18,26 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">Flasky</a>
+            <a class="navbar-brand" href="{{ url_for('main.index')}}">Flasky</a>
         </div>
-        <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li><a href="/">Home</a></li>
-            </ul>
-			<ul class="navbar-nav navbar-right">
-    			{% if current_user.is_authenticated %}
-				<li><a href="{{ url_for('auth.logout') }}"> Sign out </a> </li>
-			</ul>
-			{% else %}
-			<li><a href="{{ url_for('auth.login') }}"> Sign in </a> </li>
-			{% endif %}
-			
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                </ul>
+	       <ul class="navbar-nav navbar-right">
+    		{% if current_user.is_authenticated %}
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('auth.change_password') }}">Change Password</a></li>
+                                    <li><a href="{{ url_for('auth.change_email_request') }}">Change Email</a></li>
+		          <li><a href="{{ url_for('auth.logout') }}"> Log out </a> </li>
+		      </ul>
+                            </li>
+		{% else %}
+		<li><a href="{{ url_for('auth.login') }}"> Log in </a> </li>
+		{% endif %}
+	       </ul>
         </div>
     </div>
 </div>
@@ -33,8 +45,19 @@
 
 {% block content %}
 <div class="container">
-	{% block page_content %}{% endblock %}
+	{% for message in get_flashed_messages() %}
+     <div class="alert alert-warning">
+         <button type="button" class="close" data-dismiss="alert">&times;</button>
+         {{ message }}
+     </div>
+     {% endfor %}
+ 
+     {% block page_content %}{% endblock %}
 </div>
 {% endblock %}
 
+{% block scripts %}
+ {{ super() }}
+ {{ moment.include_moment() }}
+ {% endblock %}
 
