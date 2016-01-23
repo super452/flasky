@@ -4,9 +4,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin, AnonymousUserMixin
 from . import db, login_manager
 
-@login_manager.user_loader
-def load_user(user_id):
-	return User.query.get(int(user_id))
 
 class Permission(object):
 	FOLLOW = 0x01
@@ -38,10 +35,11 @@ class Role(db.Model):
 		for r in roles:
 			role = Role.query.filter_by(name=r).first()
 			if role is None:
-				role = Role[r][0]
-				role.default = roles[r][1]
-				db.session.add(role)
-			db.session.commit()
+				role = Role(name=r)
+			role.permissions = roles[r][0]
+			role.default = roles[r][1]
+			db.session.add(role)
+		db.session.commit()
 			
 	def __repr__(self):
 		return '<Role %r>' % self.name
@@ -127,14 +125,10 @@ class User(UserMixin, db.Model):
 		db.session.add(self)
 		return True
 
-
-
 	def can(self, permissions):
 		return self.role is not None and \
 			(self.role.permissions & permissions) == permissions
 
-
-	
 
 	def is_administrator(self):
 		return self.can(Permission.ADMINISTER)
@@ -154,5 +148,8 @@ class AnonymousUser(AnonymousUserMixin):
 login_manager.anonymous_user = AnonymousUser
 
 
+@login_manager.user_loader
+def load_user(user_id):
+	return User.query.get(int(user_id))
 
 
