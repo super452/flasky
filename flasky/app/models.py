@@ -3,9 +3,10 @@ import hashlib
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from markdown import markdown
 import bleach
-from flask import current_app, request
+from flask import current_app, request, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin, AnonymousUserMixin
+from app.exceptions import ValidationError
 from . import db, login_manager
 
 
@@ -224,6 +225,32 @@ class User(UserMixin, db.Model):
 		return Post.query.join(Follow, Follow.followed_id == Post.author_id)\
 			.filter_by(Follow.follower_id == self.id)
 
+	def to_json(self):
+		json_user = {
+			'url': url_for('api.get_post', id=self.id, _external=True),
+			'username': self.username,
+			'member_since': self.member_since
+			'last_seen': self.last_seen,
+			'posts': url_for('api.get_user_posts', id=self.id, _external=True),
+			'followed_posts': url_for('api.get_user_followed_posts',
+						id=self.id, _external=True),
+			'post_count': self.posts.count()
+		}
+		return json_user
+
+	def generate_auth_token(self, expiration):
+		s = Serializer(current_app.config['SECRET_KEY'],
+				expires_in=expiration)
+		return s.dumps({'id': self.id}).decode('ascii')
+
+	@staticmethod
+	def verify_auth_token(token):
+		s = Serializer(current_app.config['SECRET_KEY'])
+		try:
+			data = s.loads(token)
+		except:
+			return User.query.get(data['id'])
+
 	def __repr__(self):
 		return '<User %r>' % self.username
 @login_manager.user_loader
@@ -294,7 +321,7 @@ class Comment(db.Model):
 			markdown(value, output_format='html'),
 			tags=allowed_tags, strip=True))
 
-db.event.listen(Comment.body, 'set', Post.on_change_body)
+db.event.listen(Comment.body, 'set', Comment.on_change_body)
 
 		
 
